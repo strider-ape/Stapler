@@ -47,6 +47,7 @@ import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
@@ -76,35 +77,53 @@ fun FinishScreen(vm: PdfViewModel, onSaveAs: () -> Unit) {
         },
         bottomBar = {
             Surface(tonalElevation = 3.dp) {
-                Row(
+                Column(
                     Modifier
                         .navigationBarsPadding()
                         .imePadding()
-                        .padding(16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 16.dp),
                 ) {
-                    OutlinedButton(
-                        onClick = { focus.clearFocus(); onSaveAs() },
-                        enabled = canSave,
-                        modifier = Modifier.height(52.dp),
-                    ) {
-                        Icon(Icons.Outlined.FolderOpen, contentDescription = null)
-                        Spacer(Modifier.width(8.dp))
-                        Text("Save to…")
-                    }
-                    Button(
-                        onClick = {
-                            focus.clearFocus()
-                            if (PdfSaver.canSaveToDownloads) vm.createPdf() else onSaveAs()
+                    // Kept beside the buttons so the destination is always visible, not scrolled away.
+                    Text(
+                        when {
+                            // The name field shows the error; a blank line keeps the bar from jumping.
+                            !canSave -> " "
+                            PdfSaver.canSaveToDownloads -> "Saves as ${vm.cleanFileName} in Downloads/${PdfSaver.FOLDER}"
+                            else -> "You'll choose where to save ${vm.cleanFileName}"
                         },
-                        enabled = canSave,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                         modifier = Modifier
-                            .weight(1f)
-                            .height(52.dp),
-                    ) {
-                        Icon(Icons.Outlined.PictureAsPdf, contentDescription = null)
-                        Spacer(Modifier.width(8.dp))
-                        Text("Create PDF", style = MaterialTheme.typography.titleMedium)
+                            .fillMaxWidth()
+                            .padding(bottom = 10.dp),
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        OutlinedButton(
+                            onClick = { focus.clearFocus(); onSaveAs() },
+                            enabled = canSave,
+                            modifier = Modifier.height(52.dp),
+                        ) {
+                            Icon(Icons.Outlined.FolderOpen, contentDescription = null)
+                            Spacer(Modifier.width(8.dp))
+                            Text("Save to…")
+                        }
+                        Button(
+                            onClick = {
+                                focus.clearFocus()
+                                if (PdfSaver.canSaveToDownloads) vm.createPdf() else onSaveAs()
+                            },
+                            enabled = canSave,
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(52.dp),
+                        ) {
+                            Icon(Icons.Outlined.PictureAsPdf, contentDescription = null)
+                            Spacer(Modifier.width(8.dp))
+                            Text("Create PDF", style = MaterialTheme.typography.titleMedium)
+                        }
                     }
                 }
             }
@@ -183,13 +202,7 @@ private fun FileNameField(vm: PdfViewModel, focus: FocusManager) {
                 IconButton(onClick = { vm.fileName = "" }) { Icon(Icons.Outlined.Close, contentDescription = "Clear name") }
             }
         },
-        supportingText = {
-            Text(
-                error ?: if (PdfSaver.canSaveToDownloads) "Saved to Downloads/${PdfSaver.FOLDER}" else "You'll choose where to save it",
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-        },
+        supportingText = error?.let { { Text(it, maxLines = 1, overflow = TextOverflow.Ellipsis) } },
         keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences, imeAction = ImeAction.Done),
         keyboardActions = KeyboardActions(onDone = { focus.clearFocus() }),
         modifier = Modifier.fillMaxWidth(),

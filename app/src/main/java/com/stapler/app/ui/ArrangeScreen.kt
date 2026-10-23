@@ -31,7 +31,7 @@ import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.FindReplace
 import androidx.compose.material.icons.outlined.MoreVert
-import androidx.compose.material.icons.outlined.Rotate90DegreesCw
+import androidx.compose.material.icons.outlined.RotateRight
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
@@ -241,14 +241,14 @@ private fun PageCard(
                 }
                 Spacer(Modifier.weight(1f))
                 IconButton(onClick = onRotate) {
-                    Icon(Icons.Outlined.Rotate90DegreesCw, contentDescription = "Rotate page $number")
+                    Icon(RotateClockwise, contentDescription = "Rotate page $number")
                 }
                 Box {
                     IconButton(onClick = { menu = true }) {
                         Icon(Icons.Outlined.MoreVert, contentDescription = "More options for page $number")
                     }
                     DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-                        MenuItem("Rotate", Icons.Outlined.Rotate90DegreesCw) { menu = false; onRotate() }
+                        MenuItem("Rotate", RotateClockwise) { menu = false; onRotate() }
                         MenuItem("Replace image", Icons.Outlined.FindReplace) { menu = false; onReplace() }
                         if (!isFirst) MenuItem("Move earlier", Icons.AutoMirrored.Outlined.ArrowBack) { menu = false; onMove(-1) }
                         if (!isLast) MenuItem("Move later", Icons.AutoMirrored.Outlined.ArrowForward) { menu = false; onMove(1) }
@@ -316,3 +316,11 @@ private fun EmptyPages(modifier: Modifier, onAdd: () -> Unit) {
 }
 
 fun pageCountLabel(count: Int) = if (count == 1) "1 page" else "$count pages"
+
+/**
+ * Pages always turn clockwise, so the icon must not flip in right-to-left languages the way
+ * the AutoMirrored replacement does.
+ */
+@Suppress("DEPRECATION")
+private val RotateClockwise: androidx.compose.ui.graphics.vector.ImageVector
+    get() = Icons.Outlined.RotateRight
