@@ -1,3 +1,5 @@
+<img src="art/stapler-icon.svg" width="96" alt="Stapler icon">
+
 # Stapler
 
 Turn photos and scans into a clean PDF on Android. Pick your images, put the pages in order, choose margins and quality, name the file and save it.
