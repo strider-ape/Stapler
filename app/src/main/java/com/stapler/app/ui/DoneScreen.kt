@@ -1,6 +1,7 @@
 package com.stapler.app.ui
 
 import android.content.ActivityNotFoundException
+import android.content.ClipData
 import android.content.Context
 import android.content.Intent
 import android.text.format.Formatter
@@ -109,10 +110,16 @@ private fun open(context: Context, pdf: SavedPdf) {
     }
 }
 
+/**
+ * ClipData grants the system share sheet read access to the file, so its preview shows the
+ * real file name instead of the last segment of the content URI (a MediaStore row id).
+ */
 private fun share(context: Context, pdf: SavedPdf) {
     val intent = Intent(Intent.ACTION_SEND)
         .setType("application/pdf")
         .putExtra(Intent.EXTRA_STREAM, pdf.uri)
+        .putExtra(Intent.EXTRA_TITLE, pdf.name)
         .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+    intent.clipData = ClipData(pdf.name, arrayOf("application/pdf"), ClipData.Item(pdf.uri))
     context.startActivity(Intent.createChooser(intent, pdf.name))
 }
