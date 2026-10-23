@@ -10,22 +10,15 @@ import android.net.Uri
 /** Decodes images at a bounded size and applies EXIF orientation, so phone photos are never sideways. */
 object ImageLoader {
 
-    /** Width and height after EXIF and [extraRotation] are applied, without decoding pixels. */
-    fun orientedSize(resolver: ContentResolver, uri: Uri, extraRotation: Int = 0): Pair<Int, Int>? {
-        val opts = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-        resolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, opts) } ?: return null
-        if (opts.outWidth <= 0 || opts.outHeight <= 0) return null
-        val turns = (exifRotation(resolver, uri) + extraRotation) % 180 != 0
-        return if (turns) opts.outHeight to opts.outWidth else opts.outWidth to opts.outHeight
-    }
-
     /**
      * Decodes [uri] so its longest edge is at most [maxEdge] pixels, upright, with [extraRotation]
      * degrees (a multiple of 90) applied on top of the EXIF orientation.
      */
     fun load(resolver: ContentResolver, uri: Uri, maxEdge: Int, extraRotation: Int = 0): Bitmap? {
+        // A bounds-only decode always returns null, so success is judged by outWidth/outHeight.
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-        resolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, bounds) } ?: return null
+        val stream = resolver.openInputStream(uri) ?: return null
+        stream.use { BitmapFactory.decodeStream(it, null, bounds) }
         if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
 
         // Power-of-two subsampling keeps memory low; the exact resize happens below.
@@ -49,8 +42,6 @@ object ImageLoader {
         if (result !== decoded) decoded.recycle()
         return result
     }
-
-    private fun exifRotation(resolver: ContentResolver, uri: Uri): Int = exifTransform(resolver, uri).second
 
     /** Returns (mirror horizontally first, then rotate by degrees) for the image's EXIF orientation. */
     private fun exifTransform(resolver: ContentResolver, uri: Uri): Pair<Boolean, Int> {
