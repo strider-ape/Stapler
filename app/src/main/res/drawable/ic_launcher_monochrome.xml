@@ -8,13 +8,13 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- Scales the artwork up past the 66dp safe zone while keeping its corners inside the
+    <!-- Scales the artwork up slightly, keeping its corners well inside the
          72dp circle the launcher actually shows. -->
     <group
         android:pivotX="53"
         android:pivotY="55"
-        android:scaleX="1.16"
-        android:scaleY="1.16"
+        android:scaleX="1.08"
+        android:scaleY="1.08"
         android:translateX="1"
         android:translateY="-1">
         <!-- Back page, minus a gap around the front page -->

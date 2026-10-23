@@ -5,7 +5,7 @@
   <rect width="108" height="108" rx="24" fill="#3D5AFE"/>
   <!-- Scaled up so the artwork fills more of the launcher circle; matches the outer group
        in the Android icon layers. -->
-  <g transform="translate(54 54) scale(1.16) translate(-53 -55)">
+  <g transform="translate(54 54) scale(1.08) translate(-53 -55)">
     <!-- Back page, fanned out around the staple -->
     <g transform="rotate(-10 41 41.5)">
       <path fill="#B7C2FF" d="M37,33.5h28a4,4 0 0 1 4,4v38a4,4 0 0 1 -4,4h-28a4,4 0 0 1 -4,-4v-38a4,4 0 0 1 4,-4z"/>
