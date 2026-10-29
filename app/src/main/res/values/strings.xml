@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Stapler</string>
+    <!-- Name under the launcher icon and in the share menu. "PDF" is its own word so typing
+         "pdf" in an app drawer search finds the app. -->
+    <string name="launcher_name">Stapler PDF</string>
 </resources>
