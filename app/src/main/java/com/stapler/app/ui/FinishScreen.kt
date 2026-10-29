@@ -1,5 +1,6 @@
 package com.stapler.app.ui
 
+import android.text.format.Formatter
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -41,9 +42,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusManager
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -63,6 +66,9 @@ fun FinishScreen(vm: PdfViewModel, onSaveAs: () -> Unit) {
     val focus = LocalFocusManager.current
     val pager = rememberPagerState { vm.pages.size }
     val canSave = vm.fileNameError == null
+
+    // Only the images affect the size, so rotating a page or changing settings doesn't restart this.
+    LaunchedEffect(vm.pages.map { it.uri }) { vm.estimateSizes() }
 
     Scaffold(
         topBar = {
@@ -162,12 +168,18 @@ fun FinishScreen(vm: PdfViewModel, onSaveAs: () -> Unit) {
                 }
                 Section("Quality") {
                     Choice(Quality.entries, vm.options.quality, { it.label }) { vm.options = vm.options.copy(quality = it) }
-                    Text(
-                        vm.options.quality.hint,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(top = 6.dp, start = 4.dp),
-                    )
+                    Row(
+                        Modifier.padding(top = 6.dp, start = 4.dp, end = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            vm.options.quality.hint,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.weight(1f),
+                        )
+                        SizeEstimate(vm.sizeEstimates[vm.options.quality])
+                    }
                 }
                 Section("File name") {
                     FileNameField(vm, focus)
@@ -207,6 +219,25 @@ private fun FileNameField(vm: PdfViewModel, focus: FocusManager) {
         keyboardActions = KeyboardActions(onDone = { focus.clearFocus() }),
         modifier = Modifier.fillMaxWidth(),
     )
+}
+
+/** "About 2.1 MB" for the selected quality, or a quiet placeholder while it is calculated. */
+@Composable
+private fun SizeEstimate(bytes: Long?) {
+    val context = LocalContext.current
+    if (bytes == null) {
+        Text(
+            "Estimating size…",
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    } else {
+        Text(
+            "About ${Formatter.formatShortFileSize(context, bytes)}",
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.primary,
+        )
+    }
 }
 
 @Composable

@@ -5,6 +5,7 @@ import android.net.Uri
 import android.os.Build
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
@@ -12,8 +13,10 @@ import androidx.lifecycle.viewModelScope
 import com.stapler.app.data.PageItem
 import com.stapler.app.data.PdfOptions
 import com.stapler.app.data.PdfSaver
+import com.stapler.app.data.Quality
 import com.stapler.app.data.SavedPdf
 import com.stapler.app.pdf.PdfBuilder
+import com.stapler.app.pdf.SizeEstimator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -42,6 +45,24 @@ class PdfViewModel(app: Application) : AndroidViewModel(app) {
     var saved by mutableStateOf<SavedPdf?>(null)
         private set
     var error by mutableStateOf<String?>(null)
+
+    /** Estimated file size in bytes for each quality, for the current pages. Missing while calculating. */
+    val sizeEstimates = mutableStateMapOf<Quality, Long>()
+
+    /**
+     * Fills [sizeEstimates], starting with the selected quality so it shows first. Runs in the
+     * caller's scope, so leaving the screen or changing the pages cancels it.
+     */
+    suspend fun estimateSizes() {
+        val snapshot = pages.toList()
+        sizeEstimates.clear()
+        val order = listOf(options.quality) + Quality.entries.filter { it != options.quality }
+        for (quality in order) {
+            sizeEstimates[quality] = withContext(Dispatchers.IO) {
+                SizeEstimator.estimate(resolver, snapshot, quality)
+            }
+        }
+    }
 
     fun addImages(uris: List<Uri>) {
         if (uris.isEmpty()) return

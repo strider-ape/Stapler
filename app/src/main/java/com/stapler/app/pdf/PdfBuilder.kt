@@ -78,7 +78,7 @@ object PdfBuilder {
     }
 
     /** JPEG has no transparency, so transparent PNGs are flattened onto white first. */
-    private fun toJpeg(bitmap: Bitmap, quality: Int): ByteArray {
+    internal fun toJpeg(bitmap: Bitmap, quality: Int): ByteArray {
         val opaque = if (bitmap.hasAlpha()) {
             Bitmap.createBitmap(bitmap.width, bitmap.height, Bitmap.Config.ARGB_8888).also {
                 Canvas(it).apply {

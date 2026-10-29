@@ -10,6 +10,16 @@ import android.net.Uri
 /** Decodes images at a bounded size and applies EXIF orientation, so phone photos are never sideways. */
 object ImageLoader {
 
+    /** Pixel count [load] would produce for [maxEdge], read from the image header without decoding. */
+    fun outputPixels(resolver: ContentResolver, uri: Uri, maxEdge: Int): Long? {
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        val stream = resolver.openInputStream(uri) ?: return null
+        stream.use { BitmapFactory.decodeStream(it, null, bounds) }
+        if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
+        val scale = minOf(1.0, maxEdge.toDouble() / maxOf(bounds.outWidth, bounds.outHeight))
+        return (bounds.outWidth * scale).toLong() * (bounds.outHeight * scale).toLong()
+    }
+
     /**
      * Decodes [uri] so its longest edge is at most [maxEdge] pixels, upright, with [extraRotation]
      * degrees (a multiple of 90) applied on top of the EXIF orientation.
